@@ -25,8 +25,10 @@ jobs:
         run: npm run build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
+          USE_HARD_LINKS: false
 
-      - name: Upload Windows artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
@@ -51,38 +53,13 @@ jobs:
         run: npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
 
-      - name: Upload Linux artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-appimage
           path: dist/*.AppImage
-          retention-days: 30
-
-  build-mac:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build macOS
-        run: npm run build:mac
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-dmg
-          path: dist/*.dmg
           retention-days: 30
 
   release:
@@ -90,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
@@ -102,11 +79,5 @@ jobs:
             dist/windows-installer/*.exe
             dist/linux-appimage/*.AppImage
           generate_release_notes: true
-          body: |
-            ## Raspored Smjena by AcoRonaldo
-
-            ### Preuzimanje
-            - **Windows**: Preuzmite `.exe` installer
-            - **Linux**: Preuzmite `.AppImage` (chmod +x pa pokrenite)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
